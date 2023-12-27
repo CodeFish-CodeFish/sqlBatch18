@@ -1,5 +1,7 @@
 package utils;
 
+import org.junit.AfterClass;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,7 +14,7 @@ public class JdbcUtils {
     static Statement statement;
     static ResultSet resultSet;
 
-    public static Statement establishConnection(){
+    private static Statement establishConnection(){
         try{
             connection = DriverManager.getConnection(
                     getProp("connection_string"),
@@ -24,6 +26,18 @@ public class JdbcUtils {
             throw new RuntimeException("Could not connect to DataBase.");
         }
        return statement;
+    }
+
+
+    public static ResultSet queryDB(String query){
+        statement = establishConnection();
+        try
+        {
+            resultSet = statement.executeQuery(query);
+            return resultSet;
+        }catch (SQLException sqlException){
+            throw new RuntimeException("Failed running query");
+        }
     }
 
 
@@ -41,6 +55,26 @@ public class JdbcUtils {
 
         return properties.getProperty(key);
     }
+
+    @AfterClass
+    public static void closeResources(){
+        try {
+            if (resultSet!=null){
+                resultSet.close();
+            }
+            if (statement!=null){
+                statement.close();
+            }
+            if (connection != null){
+                connection.close();
+            }
+        } catch (SQLException sqlException){
+            sqlException.printStackTrace();
+        }
+
+    }
+
+
 
 
 }
